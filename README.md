@@ -12,4 +12,4 @@ Installation
 
 # clone the repo
 $ git clone https://github.com/G0LB/start_hackhost.git
-# change the working directory 
+# execution
