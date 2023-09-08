@@ -1,5 +1,5 @@
 # start_hackhost
 
-execution ./skan
+execution ./skan.sh
 
 
