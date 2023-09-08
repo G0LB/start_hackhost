@@ -1,2 +1,5 @@
 # start_hackhost
-network scan
+
+execution ./skan
+
+
