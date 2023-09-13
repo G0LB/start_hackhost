@@ -19,25 +19,52 @@ fi
 # 
 function check_ttl {
     local ip="$1"
-	echo ""
     echo "===== TTL ====="
-    ping -c 1 $ip | grep -oE "ttl=[0-9]{2,3}" | sed 's/ttl=//'
+    ttl=$(ping -c 1 $ip | grep -oE "ttl=[0-9]{2,3}" | sed 's/ttl=//')
+    echo "    : $ttl :"
+    echo "===== SO ====="
+    # Detectar el sistema operativo basado en el valor TTL
+    if [ "$ttl" -eq 64 ]; then
+        os="Linux / macOS"
+    elif [ "$ttl" -eq 32 ]; then
+        os="Windows NT - less"    
+    elif [ "$ttl" -eq 60 ]; then
+        os="AIX / HP-UX"
+    elif [ "$ttl" -eq 128 ]; then
+        os="Windows"
+    elif [ "$ttl" -eq 255 ]; then
+        os="Cisco"
+    else
+        os="No Detallado"
+    fi    
+    echo "----> : $os : <----"
+    echo "============================="
 }
 
-# OPTIONAL se puede quitar, ELEGIR scan_ports / ports_line NO eliminar ambos
+# Función para escanear puertos de la dirección IP ingresada y mostrar en lista
 function scan_ports {
     local ip="$1"
-	echo ""
-    echo "===== Escaneando Puertos ====="
-    sudo nmap -sS -v --min-rate 6000 -p- $ip | grep -E "^[0-9]+\/[a-zA-Z]+\s+[a-zA-Z]+\s+[a-zA-Z]+" | sed 's/  */ /g' | cut -d ' ' -f 1,2,3,4
+    echo "======= Escaneando Puertos ======="
+    open_ports=$(sudo nmap -sS -v --min-rate 6000 -p- $ip | grep -E "^[0-9]+\/[a-zA-Z]+\s+[a-zA-Z]+\s+[a-zA-Z]+" | sed 's/  */ /g' | cut -d ' ' -f 1,2,3,4)
+    
+    if [ -n "$open_ports" ]; then
+        echo "$open_ports"
+    else
+        echo "No se encontraron puertos abiertos."
+    fi
 }
 
-# OPTIONAL se puede quitar, ELEGIR scan_ports / ports_line NO eliminar ambos
+# Función para escanear los puertos de la dirección IP ingresada e imprimir en línea
 function ports_line {
     local ip="$1"
-	echo ""
-    echo "===== Array de Puertos ====="
-    sudo nmap -sS -v --min-rate 6000 -p- $ip | grep -Eo "^[0-9]{1,5}" | tr '\n' ','
+    echo "===== Puertos Abiertos ====="
+    open_ports=$(sudo nmap -sS -v --min-rate 6000 -p- $ip | grep -Eo "^[0-9]{1,5}" | tr '\n' ',')
+    
+    if [ -n "$open_ports" ]; then
+        echo "$open_ports"
+    else
+        echo "No se encontraron puertos abiertos."
+    fi
 }
 
 
