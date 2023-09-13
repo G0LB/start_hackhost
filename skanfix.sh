@@ -19,25 +19,57 @@ fi
 function check_ttl {
     local ip="$1"
     echo "▓▓▓▓▓▓▓▓ TTL ▓▓▓▓▓▓▓▓ :(　-_･) ︻デ═一                     *     "
-    ping -c 1 $ip | grep -oE "ttl=[0-9]{2,3}" | sed 's/ttl=//'
-    echo ""
+    ttl=$(ping -c 1 $ip | grep -oE "ttl=[0-9]{2,3}" | sed 's/ttl=//')
+    echo "   : $ttl :"
+    echo "▓▓▓▓▓▓▓▓ SO ▓▓▓▓▓▓▓▓"
+    
+    # Detectar el sistema operativo basado en el valor TTL
+    if [ "$ttl" -eq 64 ]; then
+        os="Linux / macOS"
+    elif [ "$ttl" -eq 32 ]; then
+        os="Windows NT - less"    
+    elif [ "$ttl" -eq 60 ]; then
+        os="AIX / HP-UX"
+    elif [ "$ttl" -eq 128 ]; then
+        os="Windows"
+    elif [ "$ttl" -eq 255 ]; then
+        os="Cisco"
+    else
+        os="No Detallado"
+    fi
+    
+    echo "----> : $os : <----"
+    echo "============================="
 }
 
-# 
+
+# Función para escanear puertos de la dirección IP ingresada
+
 function scan_ports {
     local ip="$1"
     echo "▓▓▓▓▓▓▓▓ Ports Scan ▓▓▓▓▓▓▓▓"
-    sudo nmap -sS -v --min-rate 6000 -p- $ip | grep -E "^[0-9]+\/[a-zA-Z]+\s+[a-zA-Z]+\s+[a-zA-Z]+" | sed 's/  */ /g' | cut -d ' ' -f 1,2,3,4
+    open_ports=$(sudo nmap -sS -v --min-rate 6000 -p- $ip | grep -E "^[0-9]+\/[a-zA-Z]+\s+[a-zA-Z]+\s+[a-zA-Z]+" | sed 's/  */ /g' | cut -d ' ' -f 1,2,3,4)
+    
+    if [ -n "$open_ports" ]; then
+        echo "$open_ports"
+    else
+        echo "No se encontraron puertos abiertos."
+    fi
 }
 
-#
+# Función para escanear e imprimir en lista los puertos abiertos
+
 function ports_line {
     local ip="$1"
-    echo ""
     echo "▓▓▓▓▓▓▓▓ Port Array's ▓▓▓▓▓▓▓▓"
-    sudo nmap -sS -v --min-rate 6000 -p- $ip | grep -Eo "^[0-9]{1,5}" | tr '\n' ','
+    open_ports=$(sudo nmap -sS -v --min-rate 6000 -p- $ip | grep -Eo "^[0-9]{1,5}" | tr '\n' ',')
+    
+    if [ -n "$open_ports" ]; then
+        echo "$open_ports"
+    else
+        echo "No se encontraron puertos abiertos."
+    fi
 }
-
 
 # 
 check_ttl "$ip_address"
@@ -58,10 +90,12 @@ echo ""
 
 # 
 echo "▓▓▓▓▓▓▓▓ Enter Ports to Scan (For Example, 135,139,445) ▓▓▓▓▓▓▓▓"
+echo ""
 read -p "====> " additional_ports
 
 #
 echo "Enter The Name of The Output File: "
+echo ""
 read -p "FILE NAME: " output_file_name
 
 #
