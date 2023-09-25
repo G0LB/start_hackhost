@@ -1,5 +1,7 @@
 # start_hackhost
 
+chmod +x ./skan.sh
+
 execution ./skan.sh
 
 
